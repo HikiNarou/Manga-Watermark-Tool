@@ -38,5 +38,6 @@ export type { BatchRenamePanelProps } from './BatchRenamePanel';
 // AI Components
 export { APIKeyPanel } from './APIKeyPanel';
 export { MaskCanvas } from './MaskCanvas';
+export { MaskEditorModal } from './MaskEditorModal';
 export { AIEditorPanel } from './AIEditorPanel';
 export { AIToolsTab } from './AIToolsTab';
