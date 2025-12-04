@@ -1,6 +1,6 @@
 /**
  * Gemini Service
- * Handles all AI image editing operations using Google Gemini 2.0 Flash API
+ * Handles all AI image editing operations using Google Gemini 3 Pro Image Preview (Nano Banana Pro) API
  * Requirements: 1.4, 3.2-3.5, 4.2-4.5, 5.2-5.6, 6.2-6.6, 8.1
  */
 
@@ -159,11 +159,11 @@ export class GeminiService {
   }
 
   /**
-   * Make API request to Gemini
+   * Make API request to Gemini 3 Pro Image Preview (Nano Banana Pro)
    */
   private async makeRequest(payload: Record<string, unknown>): Promise<string> {
     const response = await fetch(
-      `${GEMINI_API_BASE}/models/gemini-2.0-flash-exp:generateContent?key=${this.apiKey}`,
+      `${GEMINI_API_BASE}/models/gemini-3-pro-image-preview:generateContent?key=${this.apiKey}`,
       {
         method: 'POST',
         headers: {

@@ -46,7 +46,7 @@
 - **Compression Presets** - Web (WEBP 80%), Print (PNG 100%), Archive (PNG Lossless), Custom
 - **Batch Rename** - Rename file dengan pattern variables: `{chapter}`, `{page}`, `{original}`, `{date}`, `{index}`
 
-### 🤖 AI Image Editing (Gemini 2.0 Flash)
+### 🤖 AI Image Editing (Gemini 3 Pro - Nano Banana Pro)
 - **AI Image Enhancement** - Upscale 2x, Denoise, Sharpen, Auto Enhance untuk meningkatkan kualitas gambar manga
 - **AI Background Removal** - Hapus background otomatis dengan opsi transparent atau solid color
 - **AI Inpainting** - Hapus objek/teks yang tidak diinginkan dan AI akan mengisi dengan konten yang sesuai
