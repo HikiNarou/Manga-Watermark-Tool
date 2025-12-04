@@ -46,6 +46,15 @@
 - **Compression Presets** - Web (WEBP 80%), Print (PNG 100%), Archive (PNG Lossless), Custom
 - **Batch Rename** - Rename file dengan pattern variables: `{chapter}`, `{page}`, `{original}`, `{date}`, `{index}`
 
+### 🤖 AI Image Editing (Gemini 2.0 Flash)
+- **AI Image Enhancement** - Upscale 2x, Denoise, Sharpen, Auto Enhance untuk meningkatkan kualitas gambar manga
+- **AI Background Removal** - Hapus background otomatis dengan opsi transparent atau solid color
+- **AI Inpainting** - Hapus objek/teks yang tidak diinginkan dan AI akan mengisi dengan konten yang sesuai
+- **AI Text-to-Image Edit** - Edit gambar dengan prompt natural language (contoh: "Hapus teks di area yang ditandai")
+- **Mask Drawing Tools** - Brush, Rectangle, Lasso, Eraser untuk menandai area yang akan diedit AI
+- **Before/After Preview** - Lihat perbandingan sebelum dan sesudah edit AI
+- **Regenerate Option** - Tidak puas? Generate ulang dengan satu klik
+
 ### 💾 Preset System
 - **Save/Load Presets** - Simpan konfigurasi watermark untuk digunakan kembali
 - **LocalStorage Persistence** - Preset tersimpan otomatis di browser

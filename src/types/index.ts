@@ -7,6 +7,7 @@
 export * from './crop';
 export * from './compression';
 export * from './rename';
+export * from './ai';
 
 // ============================================
 // Watermark Types

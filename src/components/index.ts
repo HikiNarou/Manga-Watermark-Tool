@@ -34,3 +34,9 @@ export type { CompressionPresetPanelProps } from './CompressionPresetPanel';
 
 export { BatchRenamePanel } from './BatchRenamePanel';
 export type { BatchRenamePanelProps } from './BatchRenamePanel';
+
+// AI Components
+export { APIKeyPanel } from './APIKeyPanel';
+export { MaskCanvas } from './MaskCanvas';
+export { AIEditorPanel } from './AIEditorPanel';
+export { AIToolsTab } from './AIToolsTab';

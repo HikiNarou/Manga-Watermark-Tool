@@ -18,6 +18,7 @@ import {
   CropPanel,
   CompressionPresetPanel,
   BatchRenamePanel,
+  AIToolsTab,
 } from '@/components';
 import {
   type PresetName,
@@ -28,7 +29,7 @@ import {
 import { useImages, useWatermarkSettings, usePresets } from '@/hooks';
 
 type WatermarkTab = 'text' | 'image';
-type SidebarTab = 'watermark' | 'presets' | 'export' | 'tools';
+type SidebarTab = 'watermark' | 'presets' | 'export' | 'tools' | 'ai';
 
 function AppContent() {
   const {
@@ -38,7 +39,11 @@ function AppContent() {
     selectImage,
     removeImage,
     clearImages,
+    updateImage,
   } = useImages();
+  
+  // Get selected image
+  const selectedImage = images.find(img => img.id === selectedImageId) ?? null;
   const { isTextWatermark, switchToText, switchToImage } = useWatermarkSettings();
   // usePresets hook handles loading presets from localStorage on mount
   usePresets();
@@ -102,6 +107,22 @@ function AppContent() {
     // TODO: Update the selected image with cropped data
     console.log('Crop applied:', { newWidth, newHeight, dataUrlLength: croppedDataUrl.length });
   }, []);
+
+  // Handle AI image edited
+  const handleAIImageEdited = useCallback((newImageDataUrl: string) => {
+    if (selectedImageId && updateImage) {
+      // Create a new image from the data URL to get dimensions
+      const img = new Image();
+      img.onload = () => {
+        updateImage(selectedImageId, {
+          dataUrl: newImageDataUrl,
+          width: img.width,
+          height: img.height,
+        });
+      };
+      img.src = newImageDataUrl;
+    }
+  }, [selectedImageId, updateImage]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -205,6 +226,16 @@ function AppContent() {
               Tools
             </button>
             <button
+              onClick={() => setSidebarTab('ai')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                sidebarTab === 'ai'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              🤖 AI
+            </button>
+            <button
               onClick={() => setSidebarTab('export')}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 sidebarTab === 'export'
@@ -296,6 +327,18 @@ function AppContent() {
                     onPatternChange={setRenamePattern}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* AI Tab */}
+            {sidebarTab === 'ai' && (
+              <div className="p-4">
+                <AIToolsTab
+                  selectedImageDataUrl={selectedImage?.dataUrl ?? null}
+                  selectedImageWidth={selectedImage?.width ?? 0}
+                  selectedImageHeight={selectedImage?.height ?? 0}
+                  onImageEdited={handleAIImageEdited}
+                />
               </div>
             )}
 

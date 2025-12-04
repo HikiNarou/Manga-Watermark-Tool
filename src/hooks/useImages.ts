@@ -23,6 +23,7 @@ export interface UseImagesReturn {
   clearImages: () => void;
   selectImage: (imageId: string | null) => void;
   markProcessed: (imageId: string) => void;
+  updateImage: (imageId: string, updates: Partial<UploadedImage>) => void;
 
   // File loading helpers
   loadFromFiles: (files: File[], onProgress?: (loaded: number, total: number) => void) => Promise<{
@@ -65,6 +66,10 @@ export function useImages(): UseImagesReturn {
 
   const markProcessed = useCallback((imageId: string) => {
     dispatch({ type: 'MARK_IMAGE_PROCESSED', payload: imageId });
+  }, [dispatch]);
+
+  const updateImage = useCallback((imageId: string, updates: Partial<UploadedImage>) => {
+    dispatch({ type: 'UPDATE_IMAGE', payload: { imageId, updates } });
   }, [dispatch]);
 
   // File loading helpers
@@ -149,6 +154,7 @@ export function useImages(): UseImagesReturn {
     clearImages,
     selectImage,
     markProcessed,
+    updateImage,
 
     // File loading helpers
     loadFromFiles,

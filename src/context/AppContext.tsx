@@ -27,6 +27,7 @@ export type AppAction =
   | { type: 'CLEAR_IMAGES' }
   | { type: 'SELECT_IMAGE'; payload: string | null }
   | { type: 'MARK_IMAGE_PROCESSED'; payload: string }
+  | { type: 'UPDATE_IMAGE'; payload: { imageId: string; updates: Partial<UploadedImage> } }
   
   // Watermark settings actions
   | { type: 'SET_WATERMARK_SETTINGS'; payload: WatermarkSettings }
@@ -106,6 +107,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         images: state.images.map(img =>
           img.id === action.payload ? { ...img, processed: true } : img
+        ),
+      };
+
+    case 'UPDATE_IMAGE':
+      return {
+        ...state,
+        images: state.images.map(img =>
+          img.id === action.payload.imageId
+            ? { ...img, ...action.payload.updates }
+            : img
         ),
       };
 
