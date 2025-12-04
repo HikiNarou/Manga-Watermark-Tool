@@ -24,7 +24,7 @@
 
 | AI Text-to-Image Edit | AI Inpainting | AI Image Enhancement |
 |:---:|:---:|:---:|
-| <img src="https://i.ibb.co. com/0pFwdZpg/aiedit-test-tl.png" width="250" alt="AI Text-to-Image Edit"/> | <img src="https://i.ibb.co.com/B24dxTpD/inpaint-testai.png" width="250" alt="AI Inpainting"/> | <img src="https://i.ibb.co.com/8DwVxmpC/aiedit-test. png" width="250" alt="AI Image Enhancement"/> |
+| <img src="https://i.ibb.co.com/0pFwdZpg/aiedit-test-tl.png" width="250" alt="AI Text-to-Image Edit"/> | <img src="https://i.ibb.co.com/B24dxTpD/inpaint-testai.png" width="250" alt="AI Inpainting"/> | <img src="https://i.ibb.co.com/8DwVxmpC/aiedit-test.png" width="250" alt="AI Image Enhancement"/> |
 
 </div>
 
