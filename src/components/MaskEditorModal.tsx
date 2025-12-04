@@ -28,7 +28,7 @@ export function MaskEditorModal({
   imageDataUrl,
   imageWidth,
   imageHeight,
-  initialMaskDataUrl,
+  // initialMaskDataUrl - reserved for future use
   onSave,
   onClose,
 }: MaskEditorModalProps) {
