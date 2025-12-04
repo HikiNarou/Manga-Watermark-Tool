@@ -52,6 +52,71 @@ function getMimeType(dataUrl: string): string {
 }
 
 /**
+ * Combine original image with mask overlay for better AI understanding
+ * Creates a single image with red highlight on masked areas
+ */
+async function createMaskedPreview(
+  imageDataUrl: string,
+  maskDataUrl: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Failed to create canvas context'));
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      // Draw original image
+      ctx.drawImage(img, 0, 0);
+      
+      // Load and overlay mask
+      const maskImg = new Image();
+      maskImg.onload = () => {
+        // Create temporary canvas for mask processing
+        const maskCanvas = document.createElement('canvas');
+        const maskCtx = maskCanvas.getContext('2d');
+        if (!maskCtx) {
+          reject(new Error('Failed to create mask canvas context'));
+          return;
+        }
+        
+        maskCanvas.width = img.width;
+        maskCanvas.height = img.height;
+        maskCtx.drawImage(maskImg, 0, 0, img.width, img.height);
+        
+        // Get mask data and create red overlay
+        const maskData = maskCtx.getImageData(0, 0, img.width, img.height);
+        const overlayData = ctx.getImageData(0, 0, img.width, img.height);
+        
+        // Apply semi-transparent red overlay where mask is white
+        for (let i = 0; i < maskData.data.length; i += 4) {
+          // Check if pixel is white (masked area)
+          if (maskData.data[i]! > 200 && maskData.data[i + 1]! > 200 && maskData.data[i + 2]! > 200) {
+            // Blend with red color (semi-transparent)
+            overlayData.data[i] = Math.min(255, overlayData.data[i]! * 0.5 + 255 * 0.5);     // R
+            overlayData.data[i + 1] = Math.floor(overlayData.data[i + 1]! * 0.5);            // G
+            overlayData.data[i + 2] = Math.floor(overlayData.data[i + 2]! * 0.5);            // B
+          }
+        }
+        
+        ctx.putImageData(overlayData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      maskImg.onerror = () => reject(new Error('Failed to load mask image'));
+      maskImg.src = maskDataUrl;
+    };
+    img.onerror = () => reject(new Error('Failed to load original image'));
+    img.src = imageDataUrl;
+  });
+}
+
+/**
  * Create Gemini error from response
  */
 function createGeminiError(code: GeminiErrorCode, message: string, retryable: boolean = false): GeminiError {
@@ -78,7 +143,8 @@ function parseApiError(status: number, errorData: Record<string, unknown>): Gemi
 }
 
 /**
- * Build request payload for Gemini API
+ * Build request payload for Gemini 3 Pro Image Preview API (Nano Banana Pro)
+ * State-of-the-art image generation and editing model
  */
 export function buildRequestPayload(
   imageBase64: string,
@@ -86,19 +152,35 @@ export function buildRequestPayload(
   prompt: string,
   maskBase64?: string
 ): Record<string, unknown> {
-  const contents: Record<string, unknown>[] = [];
+  const parts: Record<string, unknown>[] = [];
   
-  // Add image part
-  const imagePart = {
+  // Build the full prompt with clear instructions
+  let fullPrompt = prompt;
+  
+  if (maskBase64) {
+    // When mask is provided, be very explicit about what to do
+    fullPrompt = `I am providing you with two images:
+1. The first image is the original manga/comic image to edit.
+2. The second image is a binary mask where WHITE areas indicate the regions that need to be edited/modified.
+
+Your task: ${prompt}
+
+IMPORTANT: Only modify the WHITE masked areas. Keep all BLACK/unmasked areas exactly as they are in the original image.
+Output the complete edited image.`;
+  }
+  
+  // Add system context
+  parts.push({ text: `${MANGA_SYSTEM_INSTRUCTIONS}\n\n${fullPrompt}` });
+  
+  // Add original image
+  parts.push({
     inlineData: {
       mimeType: imageMimeType,
       data: imageBase64,
     },
-  };
+  });
   
   // Add mask if provided
-  const parts: Record<string, unknown>[] = [imagePart];
-  
   if (maskBase64) {
     parts.push({
       inlineData: {
@@ -108,19 +190,14 @@ export function buildRequestPayload(
     });
   }
   
-  // Add text prompt
-  parts.push({ text: prompt });
-  
-  contents.push({ parts });
-  
   return {
-    contents,
-    systemInstruction: {
-      parts: [{ text: MANGA_SYSTEM_INSTRUCTIONS }],
-    },
+    contents: [{ parts }],
     generationConfig: {
+      temperature: 1,
+      topP: 0.95,
+      topK: 40,
+      maxOutputTokens: 8192,
       responseModalities: ['image', 'text'],
-      responseMimeType: 'image/png',
     },
   };
 }
@@ -149,8 +226,13 @@ export class GeminiService {
   async validateKey(): Promise<boolean> {
     try {
       const response = await fetch(
-        `${GEMINI_API_BASE}/models?key=${this.apiKey}`,
-        { method: 'GET' }
+        `${GEMINI_API_BASE}/models`,
+        {
+          method: 'GET',
+          headers: {
+            'x-goog-api-key': this.apiKey,
+          },
+        }
       );
       return response.ok;
     } catch {
@@ -160,14 +242,17 @@ export class GeminiService {
 
   /**
    * Make API request to Gemini 3 Pro Image Preview (Nano Banana Pro)
+   * State-of-the-art image generation and editing model
    */
   private async makeRequest(payload: Record<string, unknown>): Promise<string> {
+    // Use Gemini 3 Pro Image Preview (Nano Banana Pro) for image generation/editing
     const response = await fetch(
-      `${GEMINI_API_BASE}/models/gemini-3-pro-image-preview:generateContent?key=${this.apiKey}`,
+      `${GEMINI_API_BASE}/models/gemini-3-pro-image-preview:generateContent`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': this.apiKey,
         },
         body: JSON.stringify(payload),
       }
@@ -181,7 +266,7 @@ export class GeminiService {
 
     const data = await response.json();
     
-    // Extract image from response
+    // Extract response from candidates
     const candidates = data.candidates as Array<{
       content?: {
         parts?: Array<{
@@ -192,15 +277,15 @@ export class GeminiService {
     }>;
     
     if (!candidates || candidates.length === 0) {
-      throw new Error('GENERATION_FAILED: No response generated');
+      throw new Error('GENERATION_FAILED: No response generated. Please try again.');
     }
 
     const parts = candidates[0]?.content?.parts;
     if (!parts || parts.length === 0) {
-      throw new Error('GENERATION_FAILED: No content in response');
+      throw new Error('GENERATION_FAILED: No content in response. Please try again.');
     }
 
-    // Find image part
+    // Check for image in response first
     for (const part of parts) {
       if (part.inlineData?.data) {
         const mimeType = part.inlineData.mimeType || 'image/png';
@@ -208,7 +293,15 @@ export class GeminiService {
       }
     }
 
-    throw new Error('GENERATION_FAILED: No image in response');
+    // If no image, check for text response
+    for (const part of parts) {
+      if (part.text) {
+        // Model returned text - might be an explanation or error
+        throw new Error(`AI_RESPONSE: ${part.text.substring(0, 300)}`);
+      }
+    }
+
+    throw new Error('GENERATION_FAILED: No image in response. The model may not support this operation.');
   }
 
   /**
@@ -287,19 +380,61 @@ export class GeminiService {
     maskDataUrl: string,
     prompt?: string
   ): Promise<string> {
+    // Create a preview image with red overlay showing masked areas
+    const maskedPreview = await createMaskedPreview(imageDataUrl, maskDataUrl);
+    const previewBase64 = dataUrlToBase64(maskedPreview);
+    
+    // Also send original image
     const imageBase64 = dataUrlToBase64(imageDataUrl);
     const mimeType = getMimeType(imageDataUrl);
-    const maskBase64 = dataUrlToBase64(maskDataUrl);
     
-    let fullPrompt = 'Remove the content in the masked (white) areas and fill with appropriate manga-style content that matches the surrounding context. ';
+    let fullPrompt = `INPAINTING TASK:
+
+I am showing you an image with RED HIGHLIGHTED AREAS. These red areas mark the content that needs to be REMOVED and FILLED.
+
+Your task:
+1. Look at the RED highlighted areas in the first image
+2. REMOVE/ERASE all content (text, SFX, objects) within those red areas
+3. FILL those areas with appropriate background content that matches the surrounding area
+4. The second image is the clean original - use it as reference for the art style
+
+The result should look natural, as if the removed content was never there. Match the surrounding manga style, screentones, and shading.`;
     
     if (prompt) {
-      fullPrompt += `Additional instructions: ${prompt}. `;
+      fullPrompt += `\n\nAdditional instruction from user: ${prompt}`;
     }
     
-    fullPrompt += 'Ensure seamless integration with the surrounding artwork, matching line art style, screentone patterns, and shading.';
+    // Build payload with masked preview first, then original
+    const parts: Record<string, unknown>[] = [];
+    parts.push({ text: `${MANGA_SYSTEM_INSTRUCTIONS}\n\n${fullPrompt}` });
     
-    const payload = buildRequestPayload(imageBase64, mimeType, fullPrompt, maskBase64);
+    // First image: masked preview with red highlights
+    parts.push({
+      inlineData: {
+        mimeType: 'image/png',
+        data: previewBase64,
+      },
+    });
+    
+    // Second image: original clean image
+    parts.push({
+      inlineData: {
+        mimeType: mimeType,
+        data: imageBase64,
+      },
+    });
+    
+    const payload = {
+      contents: [{ parts }],
+      generationConfig: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 8192,
+        responseModalities: ['image', 'text'],
+      },
+    };
+    
     return this.makeRequest(payload);
   }
 
@@ -314,17 +449,74 @@ export class GeminiService {
   ): Promise<string> {
     const imageBase64 = dataUrlToBase64(imageDataUrl);
     const mimeType = getMimeType(imageDataUrl);
-    const maskBase64 = maskDataUrl ? dataUrlToBase64(maskDataUrl) : undefined;
     
-    let fullPrompt = prompt;
+    let fullPrompt: string;
+    let parts: Record<string, unknown>[] = [];
     
-    if (maskBase64) {
-      fullPrompt = `Apply the following edit only to the masked (white) areas: ${prompt}. Leave unmasked areas unchanged.`;
+    if (maskDataUrl) {
+      // Create a preview image with red overlay showing masked areas
+      const maskedPreview = await createMaskedPreview(imageDataUrl, maskDataUrl);
+      const previewBase64 = dataUrlToBase64(maskedPreview);
+      
+      fullPrompt = `IMAGE EDITING TASK:
+
+I am showing you an image with RED HIGHLIGHTED AREAS. These red areas mark WHERE to apply the edit.
+
+User's edit request: "${prompt}"
+
+Instructions:
+1. Look at the RED highlighted areas in the first image
+2. Apply the user's edit request ONLY to those red areas
+3. Keep all non-red areas EXACTLY the same as the original
+4. The second image is the clean original - use it as reference
+
+Output the complete edited image.`;
+      
+      parts.push({ text: `${MANGA_SYSTEM_INSTRUCTIONS}\n\n${fullPrompt}` });
+      
+      // First image: masked preview with red highlights
+      parts.push({
+        inlineData: {
+          mimeType: 'image/png',
+          data: previewBase64,
+        },
+      });
+      
+      // Second image: original clean image
+      parts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: imageBase64,
+        },
+      });
+    } else {
+      fullPrompt = `IMAGE EDITING TASK:
+
+User's edit request: "${prompt}"
+
+Apply this edit to the entire image while maintaining the manga/comic art style.
+Output the complete edited image.`;
+      
+      parts.push({ text: `${MANGA_SYSTEM_INSTRUCTIONS}\n\n${fullPrompt}` });
+      parts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: imageBase64,
+        },
+      });
     }
     
-    fullPrompt += ' Maintain the manga/comic art style and ensure the edit integrates seamlessly with the rest of the image.';
+    const payload = {
+      contents: [{ parts }],
+      generationConfig: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 8192,
+        responseModalities: ['image', 'text'],
+      },
+    };
     
-    const payload = buildRequestPayload(imageBase64, mimeType, fullPrompt, maskBase64);
     return this.makeRequest(payload);
   }
 

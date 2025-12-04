@@ -14,10 +14,10 @@ describe('GeminiService Property Tests', () => {
    * **Validates: Requirements 8.1**
    * 
    * For any AI edit request built by GeminiService, the request payload
-   * SHALL include the manga-optimized system instructions.
+   * SHALL include the manga-optimized system instructions embedded in the prompt.
    */
   describe('Property 7: AI Request Includes System Instructions', () => {
-    it('should include system instructions in every request payload', () => {
+    it('should include system instructions in prompt text', () => {
       fc.assert(
         fc.property(
           // Generate random base64-like strings for image
@@ -29,22 +29,24 @@ describe('GeminiService Property Tests', () => {
           (imageBase64, mimeType, prompt) => {
             const payload = buildRequestPayload(imageBase64, mimeType, prompt);
             
-            // Check that systemInstruction exists
-            expect(payload).toHaveProperty('systemInstruction');
+            // Check that contents exists
+            expect(payload).toHaveProperty('contents');
             
-            const systemInstruction = payload.systemInstruction as {
-              parts?: Array<{ text?: string }>;
-            };
+            const contents = payload.contents as Array<{
+              parts?: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>;
+            }>;
             
-            // Check that it has parts
-            expect(systemInstruction).toHaveProperty('parts');
-            expect(Array.isArray(systemInstruction.parts)).toBe(true);
-            expect(systemInstruction.parts?.length).toBeGreaterThan(0);
+            expect(Array.isArray(contents)).toBe(true);
+            expect(contents.length).toBeGreaterThan(0);
             
-            // Check that the first part contains the manga system instructions
-            const firstPart = systemInstruction.parts?.[0];
-            expect(firstPart).toHaveProperty('text');
-            expect(firstPart?.text).toBe(MANGA_SYSTEM_INSTRUCTIONS);
+            const parts = contents[0]?.parts;
+            expect(parts).toBeDefined();
+            
+            // Find text part that contains system instructions
+            const textPart = parts?.find(p => p.text !== undefined);
+            expect(textPart).toBeDefined();
+            expect(textPart?.text).toContain(MANGA_SYSTEM_INSTRUCTIONS);
+            expect(textPart?.text).toContain(prompt);
           }
         ),
         { numRuns: 100 }
@@ -61,14 +63,15 @@ describe('GeminiService Property Tests', () => {
           (imageBase64, mimeType, prompt, maskBase64) => {
             const payload = buildRequestPayload(imageBase64, mimeType, prompt, maskBase64);
             
-            // System instruction should still be present
-            expect(payload).toHaveProperty('systemInstruction');
-            
-            const systemInstruction = payload.systemInstruction as {
+            const contents = payload.contents as Array<{
               parts?: Array<{ text?: string }>;
-            };
+            }>;
             
-            expect(systemInstruction.parts?.[0]?.text).toBe(MANGA_SYSTEM_INSTRUCTIONS);
+            const parts = contents[0]?.parts;
+            const textPart = parts?.find(p => p.text?.includes(MANGA_SYSTEM_INSTRUCTIONS));
+            
+            // System instruction should still be present in text
+            expect(textPart).toBeDefined();
           }
         ),
         { numRuns: 50 }
@@ -99,10 +102,11 @@ describe('GeminiService Property Tests', () => {
             // Check that image is included
             const parts = contents[0]?.parts;
             expect(parts).toBeDefined();
-            expect(parts?.length).toBeGreaterThanOrEqual(2); // image + text
+            expect(parts?.length).toBeGreaterThanOrEqual(2); // text + image
             
-            // First part should be image
-            const imagePart = parts?.[0];
+            // Find image part
+            const imagePart = parts?.find(p => p.inlineData !== undefined);
+            expect(imagePart).toBeDefined();
             expect(imagePart?.inlineData?.mimeType).toBe(mimeType);
             expect(imagePart?.inlineData?.data).toBe(imageBase64);
           }
@@ -126,10 +130,10 @@ describe('GeminiService Property Tests', () => {
             
             const parts = contents[0]?.parts;
             
-            // Find text part
+            // Find text part that contains the user prompt
             const textPart = parts?.find(p => p.text !== undefined);
             expect(textPart).toBeDefined();
-            expect(textPart?.text).toBe(prompt);
+            expect(textPart?.text).toContain(prompt);
           }
         ),
         { numRuns: 50 }
@@ -142,12 +146,17 @@ describe('GeminiService Property Tests', () => {
       expect(payload).toHaveProperty('generationConfig');
       
       const config = payload.generationConfig as {
+        temperature?: number;
+        topK?: number;
+        topP?: number;
+        maxOutputTokens?: number;
         responseModalities?: string[];
-        responseMimeType?: string;
       };
       
+      // Check generation config has required fields
+      expect(config.temperature).toBeDefined();
+      expect(config.maxOutputTokens).toBeDefined();
       expect(config.responseModalities).toContain('image');
-      expect(config.responseMimeType).toBe('image/png');
     });
   });
 
