@@ -193,58 +193,60 @@ function AppContent() {
 
         {/* Right Sidebar - Configuration Panels */}
         <aside className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-          {/* Sidebar Tabs */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setSidebarTab('watermark')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                sidebarTab === 'watermark'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              Watermark
-            </button>
-            <button
-              onClick={() => setSidebarTab('presets')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                sidebarTab === 'presets'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              Presets
-            </button>
-            <button
-              onClick={() => setSidebarTab('tools')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                sidebarTab === 'tools'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              Tools
-            </button>
-            <button
-              onClick={() => setSidebarTab('ai')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                sidebarTab === 'ai'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              🤖 AI
-            </button>
-            <button
-              onClick={() => setSidebarTab('export')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                sidebarTab === 'export'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              Export
-            </button>
+          {/* Sidebar Tabs - Horizontally Scrollable */}
+          <div className="overflow-x-auto border-b border-gray-200 scrollbar-thin">
+            <div className="flex min-w-max">
+              <button
+                onClick={() => setSidebarTab('watermark')}
+                className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  sidebarTab === 'watermark'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                Watermark
+              </button>
+              <button
+                onClick={() => setSidebarTab('presets')}
+                className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  sidebarTab === 'presets'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                Presets
+              </button>
+              <button
+                onClick={() => setSidebarTab('tools')}
+                className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  sidebarTab === 'tools'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                Tools
+              </button>
+              <button
+                onClick={() => setSidebarTab('ai')}
+                className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  sidebarTab === 'ai'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                🤖 AI
+              </button>
+              <button
+                onClick={() => setSidebarTab('export')}
+                className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  sidebarTab === 'export'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                Export
+              </button>
+            </div>
           </div>
 
           {/* Sidebar Content */}
