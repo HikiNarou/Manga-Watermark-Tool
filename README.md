@@ -1,5 +1,5 @@
 # 🎨 Manga Watermark Tool
-🌐 **Bahasa / Language:** **Indonesian** | [English](README.  EN.md)
+🌐 **Bahasa / Language:** **Indonesian** | [English](README.EN.md)
 
 <div align="center">
 
