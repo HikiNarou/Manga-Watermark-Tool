@@ -3,12 +3,12 @@
 
 <div align="center">
 
-![Version](https://img. shields.io/badge/version-0.0.1-blue. svg)
-![React](https://img. shields.io/badge/React-18.3.1-61DAFB? logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.6.2-3178C6? logo=typescript)
+![Version](https://img.shields.io/badge/version-0.0.1-blue.svg)
+![React](https://img.shields.io/badge/React-18.3.1-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6.2-3178C6?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-6.0.1-646CFF?logo=vite)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.15-06B6D4? logo=tailwindcss)
-![License](https://img. shields.io/badge/license-MIT-green.svg)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.15-06B6D4?logo=tailwindcss)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 **A web application for batch adding watermarks to manga images with comprehensive features.**
 
