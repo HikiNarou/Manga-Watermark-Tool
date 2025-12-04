@@ -40,6 +40,7 @@ function AppContent() {
     removeImage,
     clearImages,
     updateImage,
+    reorderImages,
   } = useImages();
   
   // Get selected image
@@ -58,6 +59,9 @@ function AppContent() {
   const [selectedPreset, setSelectedPreset] = useState<PresetName>('custom');
   const [renameEnabled, setRenameEnabled] = useState(false);
   const [renamePattern, setRenamePattern] = useState<RenamePattern>(createDefaultRenamePattern());
+  
+  // Sidebar visibility state
+  const [leftSidebarVisible, setLeftSidebarVisible] = useState(true);
 
   // Sync watermark tab with actual config type
   useEffect(() => {
@@ -155,10 +159,37 @@ function AppContent() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar Toggle Button (when collapsed) */}
+        {!leftSidebarVisible && (
+          <button
+            onClick={() => setLeftSidebarVisible(true)}
+            className="flex-shrink-0 w-10 bg-white border-r border-gray-200 flex flex-col items-center justify-start pt-4 hover:bg-gray-50 transition-colors"
+            title="Show sidebar"
+          >
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+            <span className="text-xs text-gray-500 mt-2 writing-mode-vertical">Images ({images.length})</span>
+          </button>
+        )}
+
         {/* Left Sidebar - Image Management */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <aside className={`bg-white border-r border-gray-200 flex flex-col flex-shrink-0 transition-all duration-300 ${leftSidebarVisible ? 'w-72' : 'w-0 overflow-hidden'}`}>
+          {/* Sidebar Header with Toggle */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">Upload Images</h2>
+            <button
+              onClick={() => setLeftSidebarVisible(false)}
+              className="p-1 rounded hover:bg-gray-100 transition-colors"
+              title="Hide sidebar"
+            >
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+          
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Upload Images</h2>
             <ImageUploader
               onFilesSelected={handleFilesSelected}
               isLoading={isLoading}
@@ -173,6 +204,7 @@ function AppContent() {
                 selectedImageId={selectedImageId}
                 onSelectImage={selectImage}
                 onRemoveImage={removeImage}
+                onReorderImages={reorderImages}
               />
             </div>
           )}

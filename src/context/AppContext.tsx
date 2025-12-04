@@ -28,6 +28,7 @@ export type AppAction =
   | { type: 'SELECT_IMAGE'; payload: string | null }
   | { type: 'MARK_IMAGE_PROCESSED'; payload: string }
   | { type: 'UPDATE_IMAGE'; payload: { imageId: string; updates: Partial<UploadedImage> } }
+  | { type: 'REORDER_IMAGES'; payload: { fromIndex: number; toIndex: number } }
   
   // Watermark settings actions
   | { type: 'SET_WATERMARK_SETTINGS'; payload: WatermarkSettings }
@@ -119,6 +120,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
             : img
         ),
       };
+
+    case 'REORDER_IMAGES': {
+      const { fromIndex, toIndex } = action.payload;
+      const newImages = [...state.images];
+      const [movedImage] = newImages.splice(fromIndex, 1);
+      if (movedImage) {
+        newImages.splice(toIndex, 0, movedImage);
+      }
+      return {
+        ...state,
+        images: newImages,
+      };
+    }
 
     // ============================================
     // Watermark Settings Actions

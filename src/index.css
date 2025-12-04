@@ -35,3 +35,9 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Vertical text for collapsed sidebar */
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
